@@ -342,6 +342,14 @@
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
             margin-bottom: 30px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .kits-scroll-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 10px;
         }
 
         .option-card {
@@ -1777,10 +1785,11 @@
                 name: 'Outros',
                 icon: '⚙️',
                 items: [
-                    { value: 'cooktop', label: 'Balcão Cooktop', price: { pix: 289, credit: 299 }, images: ['Balcao_cooktop_branco_1L/37ad193c-7236-4e97-a2ca-b10de00dbbbd.jpg', 'Balcao_cooktop_preto_1L/ea7e2ddf-7e78-4759-8371-b75291426cb5.jpg', 'Balcao_cooktop_amadeirado_1L/2f89eed8-0538-496b-929d-6afd502ee776.jpg'] },
-                    { value: 'multiuso', label: 'Multi-Uso', price: { pix: 299, credit: 319 }, images: [] },
-                    { value: 'roupeiro-2p', label: 'Roupeiro 2 Portas', price: { pix: 369, credit: 389 }, images: [] },
-                    { value: 'roupeiro-4p', label: 'Roupeiro 4 Portas', price: { pix: 529, credit: 559 }, images: [] },
+                    { value: 'cooktop', label: 'Balcão Cooktop', price: { pix: 289, credit: 299 }, images: ['Balcao_cooktop_branco_1L/37ad193c-7236-4e97-a2ca-b10de00dbbbd.jpg', 'Balcao_cooktop_preto_1L/ea7e2ddf-7e78-4759-8371-b75291426cb5.jpg', 'Balcao_cooktop_amadeirado_1L/2f89eed8-0538-496b-929d-6afd502ee776.jpg'], colors: [
+                        { color: 'white', label: 'Branco', src: 'Balcao_cooktop_branco_1L/37ad193c-7236-4e97-a2ca-b10de00dbbbd.jpg' },
+                        { color: 'black', label: 'Preto', src: 'Balcao_cooktop_preto_1L/ea7e2ddf-7e78-4759-8371-b75291426cb5.jpg' },
+                        { color: 'wood', label: 'Amadeirado', src: 'Balcao_cooktop_amadeirado_1L/2f89eed8-0538-496b-929d-6afd502ee776.jpg' }
+                    ] },
                     { value: 'torre', label: 'Torre', price: { pix: 379, credit: 399 }, images: ['Torre_preta_1L/5d3642ed-2f24-479a-9953-3013f55af810.jpg'] }
                 ],
                 images: []
@@ -2133,13 +2142,28 @@
             const container = document.getElementById('size-options');
 
             if (currentCategory === 'kits') {
-                container.innerHTML = kitsData.map(kit => `
-                    <div class="option-card" onclick="selectKit('${kit.id}')">
-                        <h4>${kit.name}</h4>
-                        <p style="color: var(--text-light); font-size: 0.85rem;">${kit.desc}</p>
-                        <div class="price">R$ ${paymentMethod === 'pix' ? kit.price.pix : kit.price.credit}</div>
+                container.innerHTML = `<div class="kits-scroll-wrapper" style="display: flex; gap: 15px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 10px;">
+                    ${kitsData.map(kit => `
+                        <div class="option-card" onclick="selectKit('${kit.id}')" style="min-width: 200px; flex-shrink: 0;">
+                            <h4>${kit.name}</h4>
+                            <p style="color: var(--text-light); font-size: 0.85rem;">${kit.desc}</p>
+                            <div class="price">R$ ${paymentMethod === 'pix' ? kit.price.pix : kit.price.credit}</div>
+                        </div>
+                    `).join('')}
+                </div>`;
+            } else if (currentCategory === 'outros' && selectedSize === 'cooktop') {
+                const cooktop = data.items.find(i => i.value === 'cooktop');
+                container.innerHTML = `
+                    <h3 style="text-align: center; margin-bottom: 15px;">Escolha a Cor</h3>
+                    <div class="photos-grid">
+                        ${cooktop.colors.map(c => `
+                            <div class="photo-item" onclick="selectCooktopColor('${c.color}', '${c.label}', '${c.src}')">
+                                <img src="${c.src}" alt="${c.label}">
+                                <div class="caption">${c.label}</div>
+                            </div>
+                        `).join('')}
                     </div>
-                `).join('');
+                `;
             } else {
                 container.innerHTML = data.items.map(item => `
                     <div class="option-card" onclick="selectSimpleItem('${item.value}')">
@@ -2148,6 +2172,21 @@
                     </div>
                 `).join('');
             }
+        }
+
+        let selectedCooktopColor = '';
+        let selectedCooktopSrc = '';
+
+        function selectCooktopColor(color, label, src) {
+            selectedCooktopColor = label;
+            selectedCooktopSrc = src;
+            document.querySelectorAll('.photo-item').forEach(item => item.style.outline = 'none');
+            event.currentTarget.style.outline = '3px solid var(--accent)';
+            document.getElementById('cooktop-selected').innerHTML = `
+                <p style="text-align: center;">Cor: <strong>${label}</strong></p>
+                <img src="${src}" style="max-width: 200px; border-radius: 10px; margin: 10px auto; display: block;">
+            `;
+            document.getElementById('add-btn').disabled = false;
         }
 
         function selectSize(size) {
@@ -2270,7 +2309,13 @@
             event.currentTarget.classList.add('selected');
 
             selectedSize = itemValue;
-            showStep(3);
+            if (itemValue === 'cooktop') {
+                const configDiv = document.getElementById('selected-config');
+                configDiv.innerHTML = `<h3>${item.label}</h3><div class="final-price">R$ ${paymentMethod === 'pix' ? item.price.pix : item.price.credit}</div><div id="cooktop-selected"></div>`;
+                renderSimpleOptions(data);
+            } else {
+                showStep(3);
+            }
         }
 
         function selectKit(kitId) {
@@ -2564,12 +2609,22 @@
                 };
             } else if (currentCategory === 'cubas' || currentCategory === 'outros') {
                 const product = data.items.find(i => i.value === selectedSize);
-                item = {
-                    id: product.value,
-                    name: product.label,
-                    desc: '',
-                    price: paymentMethod === 'pix' ? product.price.pix : product.price.credit
-                };
+                if (selectedSize === 'cooktop') {
+                    item = {
+                        id: product.value,
+                        name: product.label,
+                        desc: selectedCooktopColor,
+                        color: selectedCooktopColor,
+                        price: paymentMethod === 'pix' ? product.price.pix : product.price.credit
+                    };
+                } else {
+                    item = {
+                        id: product.value,
+                        name: product.label,
+                        desc: '',
+                        price: paymentMethod === 'pix' ? product.price.pix : product.price.credit
+                    };
+                }
             } else {
                 let key, price, desc;
                 if (currentCategory === 'balcoes') {
