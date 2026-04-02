@@ -1409,11 +1409,6 @@
                 <h3>Balcões</h3>
                 <p>1.00m / 1.20m / 1.60m</p>
             </div>
-            <div class="category-card" onclick="openCategory('aereos')">
-                <div class="icon">🗃️</div>
-                <h3>Aéreos</h3>
-                <p>80cm / 1.00m / 1.20m / 1.60m</p>
-            </div>
             <div class="category-card" onclick="openCategory('mantimentos')">
                 <div class="icon">🍳</div>
                 <h3>Mantimentos</h3>
@@ -1716,24 +1711,6 @@
                     ]
                 }
             },
-            aereos: {
-                name: 'Aéreo',
-                icon: '🗃️',
-                sizes: [
-                    { value: '0.80', label: '80cm', model: 'simples', hasModel: false },
-                    { value: '1.00', label: '1.00m', model: '1l', hasModel: false },
-                    { value: '1.20', label: '1.20m', model: 'both', hasModel: true },
-                    { value: '1.60', label: '1.60m', model: '1l', hasModel: false }
-                ],
-                prices: {
-                    '0.80_simples': { pix: 259, credit: 269 },
-                    '1.00_1l': { pix: 269, credit: 279 },
-                    '1.20_simples': { pix: 279, credit: 289 },
-                    '1.20_1l': { pix: 289, credit: 299 },
-                    '1.60_1l': { pix: 359, credit: 379 }
-                },
-                images: []
-            },
             mantimentos: {
                 name: 'Mantimentos',
                 icon: '🍳',
@@ -1785,11 +1762,7 @@
                 name: 'Outros',
                 icon: '⚙️',
                 items: [
-                    { value: 'cooktop', label: 'Balcão Cooktop', price: { pix: 289, credit: 299 }, images: ['Balcao_cooktop_branco_1L/37ad193c-7236-4e97-a2ca-b10de00dbbbd.jpg', 'Balcao_cooktop_preto_1L/ea7e2ddf-7e78-4759-8371-b75291426cb5.jpg', 'Balcao_cooktop_amadeirado_1L/2f89eed8-0538-496b-929d-6afd502ee776.jpg'], colors: [
-                        { color: 'white', label: 'Branco', src: 'Balcao_cooktop_branco_1L/37ad193c-7236-4e97-a2ca-b10de00dbbbd.jpg' },
-                        { color: 'black', label: 'Preto', src: 'Balcao_cooktop_preto_1L/ea7e2ddf-7e78-4759-8371-b75291426cb5.jpg' },
-                        { color: 'wood', label: 'Amadeirado', src: 'Balcao_cooktop_amadeirado_1L/2f89eed8-0538-496b-929d-6afd502ee776.jpg' }
-                    ] },
+                    { value: 'cooktop', label: 'Balcão Cooktop', price: { pix: 289, credit: 299 }, images: ['Balcao_cooktop_branco_1L/37ad193c-7236-4e97-a2ca-b10de00dbbbd.jpg', 'Balcao_cooktop_preto_1L/ea7e2ddf-7e78-4759-8371-b75291426cb5.jpg', 'Balcao_cooktop_amadeirado_1L/2f89eed8-0538-496b-929d-6afd502ee776.jpg'] },
                     { value: 'torre', label: 'Torre', price: { pix: 379, credit: 399 }, images: ['Torre_preta_1L/5d3642ed-2f24-479a-9953-3013f55af810.jpg'] }
                 ],
                 images: []
@@ -1904,7 +1877,6 @@
                     let category = null;
                     
                     if (categoryKey === 'balcão') category = productData.balcoes;
-                    else if (categoryKey === 'aéreo') category = productData.aereos;
                     else if (categoryKey === 'mantimentos') category = productData.mantimentos;
                     
                     if (category) {
@@ -2151,19 +2123,6 @@
                         </div>
                     `).join('')}
                 </div>`;
-            } else if (currentCategory === 'outros' && selectedSize === 'cooktop') {
-                const cooktop = data.items.find(i => i.value === 'cooktop');
-                container.innerHTML = `
-                    <h3 style="text-align: center; margin-bottom: 15px;">Escolha a Cor</h3>
-                    <div class="photos-grid">
-                        ${cooktop.colors.map(c => `
-                            <div class="photo-item" onclick="selectCooktopColor('${c.color}', '${c.label}', '${c.src}')">
-                                <img src="${c.src}" alt="${c.label}">
-                                <div class="caption">${c.label}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
             } else {
                 container.innerHTML = data.items.map(item => `
                     <div class="option-card" onclick="selectSimpleItem('${item.value}')">
@@ -2172,21 +2131,6 @@
                     </div>
                 `).join('');
             }
-        }
-
-        let selectedCooktopColor = '';
-        let selectedCooktopSrc = '';
-
-        function selectCooktopColor(color, label, src) {
-            selectedCooktopColor = label;
-            selectedCooktopSrc = src;
-            document.querySelectorAll('.photo-item').forEach(item => item.style.outline = 'none');
-            event.currentTarget.style.outline = '3px solid var(--accent)';
-            document.getElementById('cooktop-selected').innerHTML = `
-                <p style="text-align: center;">Cor: <strong>${label}</strong></p>
-                <img src="${src}" style="max-width: 200px; border-radius: 10px; margin: 10px auto; display: block;">
-            `;
-            document.getElementById('add-btn').disabled = false;
         }
 
         function selectSize(size) {
@@ -2309,13 +2253,7 @@
             event.currentTarget.classList.add('selected');
 
             selectedSize = itemValue;
-            if (itemValue === 'cooktop') {
-                const configDiv = document.getElementById('selected-config');
-                configDiv.innerHTML = `<h3>${item.label}</h3><div class="final-price">R$ ${paymentMethod === 'pix' ? item.price.pix : item.price.credit}</div><div id="cooktop-selected"></div>`;
-                renderSimpleOptions(data);
-            } else {
-                showStep(3);
-            }
+            showStep(3);
         }
 
         function selectKit(kitId) {
@@ -2610,11 +2548,11 @@
             } else if (currentCategory === 'cubas' || currentCategory === 'outros') {
                 const product = data.items.find(i => i.value === selectedSize);
                 if (selectedSize === 'cooktop') {
+                    const colorName = selectedColor === 'white' ? 'Branco' : selectedColor === 'black' ? 'Preto' : 'Amadeirado';
                     item = {
                         id: product.value,
                         name: product.label,
-                        desc: selectedCooktopColor,
-                        color: selectedCooktopColor,
+                        desc: colorName,
                         price: paymentMethod === 'pix' ? product.price.pix : product.price.credit
                     };
                 } else {
@@ -2626,27 +2564,28 @@
                     };
                 }
             } else {
-                let key, price, desc;
+                let key = '', price = 0, desc = '';
                 if (currentCategory === 'balcoes') {
                     if (selectedCuba) {
                         if (selectedSize === '1.00') {
                             key = '1.00_1l_com_cuba';
-                            price = paymentMethod === 'pix' ? data.prices[key].pix : data.prices[key].credit;
                             desc = '1° Linha c/ Cuba Marmorite';
                         } else if (selectedSize === '1.20') {
                             key = `${selectedSize}_${selectedModel}_com_cuba`;
-                            price = paymentMethod === 'pix' ? data.prices[key].pix : data.prices[key].credit;
                             desc = (selectedModel === '1l' ? '1° Linha' : 'Simples') + ' c/ Cuba Marmorite';
                         } else if (selectedSize === '1.60') {
                             key = '1.60_1l_com_cuba';
-                            price = paymentMethod === 'pix' ? data.prices[key].pix : data.prices[key].credit;
                             desc = '1° Linha c/ Cuba Marmorite';
                         }
                     } else {
-                        key = `${selectedSize}_${selectedModel}`;
-                        price = data.prices[key] ? (paymentMethod === 'pix' ? data.prices[key].pix : data.prices[key].credit) : 0;
+                        if (selectedSize === '1.00' || selectedSize === '1.60') {
+                            key = `${selectedSize}_1l`;
+                        } else {
+                            key = `${selectedSize}_${selectedModel}`;
+                        }
                         desc = selectedModel === '1l' ? '1° Linha' : 'Simples';
                     }
+                    price = data.prices[key] ? (paymentMethod === 'pix' ? data.prices[key].pix : data.prices[key].credit) : 0;
                 } else {
                     key = `${selectedSize}_${selectedModel}`;
                     price = data.prices[key] ? (paymentMethod === 'pix' ? data.prices[key].pix : data.prices[key].credit) : 0;
